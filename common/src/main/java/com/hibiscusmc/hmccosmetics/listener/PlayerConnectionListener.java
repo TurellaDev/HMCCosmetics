@@ -5,9 +5,12 @@ import com.hibiscusmc.hmccosmetics.api.events.PlayerLoadEvent;
 import com.hibiscusmc.hmccosmetics.api.events.PlayerPreLoadEvent;
 import com.hibiscusmc.hmccosmetics.api.events.PlayerPreUnloadEvent;
 import com.hibiscusmc.hmccosmetics.api.events.PlayerUnloadEvent;
+import com.hibiscusmc.hmccosmetics.cache.CosmeticCache;
 import com.hibiscusmc.hmccosmetics.config.section.DatabaseSettings;
 import com.hibiscusmc.hmccosmetics.database.Database;
 import com.hibiscusmc.hmccosmetics.gui.Menus;
+import com.hibiscusmc.hmccosmetics.messaging.CrossServerManager;
+import com.hibiscusmc.hmccosmetics.messaging.message.CosmeticUpdateMessage;
 import com.hibiscusmc.hmccosmetics.user.CosmeticUser;
 import com.hibiscusmc.hmccosmetics.user.CosmeticUsers;
 import com.hibiscusmc.hmccosmetics.util.MessagesUtil;
@@ -25,6 +28,9 @@ import java.util.UUID;
 public class PlayerConnectionListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerJoin(@NotNull PlayerJoinEvent event) {
+        // Notify other servers about player join
+        CrossServerManager.getInstance().publishPlayerJoin(event.getPlayer().getUniqueId());
+
         if (DatabaseSettings.isEnabledDelay()) {
             MessagesUtil.sendDebugMessages("Delay Enabled with " + DatabaseSettings.getDelayLength() + " ticks");
             Bukkit.getScheduler().runTaskLater(
@@ -55,6 +61,9 @@ public class PlayerConnectionListener implements Listener {
                 CosmeticUsers.addUser(cosmeticUser);
                 MessagesUtil.sendDebugMessages("Run User Join for " + playerId);
 
+                // Apply any cached cross-server updates
+                applyCachedUpdates(cosmeticUser);
+
                 PlayerLoadEvent playerLoadEvent = new PlayerLoadEvent(cosmeticUser);
                 Bukkit.getPluginManager().callEvent(playerLoadEvent);
 
@@ -68,6 +77,16 @@ public class PlayerConnectionListener implements Listener {
             MessagesUtil.sendDebugMessages("Unable to load Cosmetic User " + playerId + ". Exception: " + ex.getMessage());
             return null;
         });
+    }
+
+    private void applyCachedUpdates(CosmeticUser user) {
+        java.util.Map<String, CosmeticUpdateMessage> cachedUpdates = CosmeticCache.consumeCachedUpdates(user.getUniqueId());
+        if (cachedUpdates == null || cachedUpdates.isEmpty()) return;
+
+        MessagesUtil.sendDebugMessages("Applying " + cachedUpdates.size() + " cached cross-server updates for " + user.getUniqueId());
+        for (CosmeticUpdateMessage update : cachedUpdates.values()) {
+            CrossServerManager.getInstance().applyCosmeticUpdate(user, update);
+        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -92,6 +111,9 @@ public class PlayerConnectionListener implements Listener {
         Database.save(user);
         user.destroy();
         CosmeticUsers.removeUser(user.getUniqueId());
+
+        // Notify other servers about player quit
+        CrossServerManager.getInstance().publishPlayerQuit(event.getPlayer().getUniqueId());
     }
 
     @EventHandler(priority = EventPriority.MONITOR)

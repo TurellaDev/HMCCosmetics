@@ -21,18 +21,8 @@ public class PaperPlayerGameListener implements Listener {
         CosmeticUser user = CosmeticUsers.getUser(player);
         if (user == null || user.isInWardrobe()) return;
 
-        boolean armorChanged = false;
-        for (EquipmentSlot slot : event.getEquipmentChanges().keySet()) {
-            CosmeticSlot cosmeticSlot = equipmentSlotToCosmeticType(slot);
-            if (cosmeticSlot == null) continue;
-
-            armorChanged = true;
-            user.updateCosmetic(cosmeticSlot);
-        }
-
-        // Selecting another hotbar slot also fires this event for the main hand. Resyncing the
-        // entire inventory in that case can overwrite client-side creative inventory changes.
-        if (!armorChanged) return;
+        for (EquipmentSlot slot : event.getEquipmentChanges().keySet())
+            user.updateCosmetic(equipmentSlotToCosmeticType(slot));
 
         Bukkit.getScheduler().runTaskLater(HMCCosmeticsPlugin.getInstance(), player::updateInventory, 2);
     }

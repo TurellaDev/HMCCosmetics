@@ -110,9 +110,9 @@ public class MySQLData extends SQLData {
 
     private boolean isConnectionOpen() {
         try {
-            return connection != null && !connection.isClosed();
+            return connection != null && !connection.isClosed() && connection.isValid(5);
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            return false;
         }
     }
 

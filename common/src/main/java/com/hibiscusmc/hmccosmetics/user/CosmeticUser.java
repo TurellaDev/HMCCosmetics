@@ -17,6 +17,7 @@ import com.hibiscusmc.hmccosmetics.cosmetic.types.CosmeticBackpackType;
 import com.hibiscusmc.hmccosmetics.cosmetic.types.CosmeticBalloonType;
 import com.hibiscusmc.hmccosmetics.database.UserData;
 import com.hibiscusmc.hmccosmetics.gui.Menus;
+import com.hibiscusmc.hmccosmetics.messaging.CrossServerManager;
 import com.hibiscusmc.hmccosmetics.user.manager.UserBackpackManager;
 import com.hibiscusmc.hmccosmetics.user.manager.UserBalloonManager;
 import com.hibiscusmc.hmccosmetics.user.manager.UserWardrobeManager;
@@ -259,6 +260,9 @@ public class CosmeticUser implements CosmeticHolder {
         // API
         PlayerCosmeticPostEquipEvent postEquipEvent = new PlayerCosmeticPostEquipEvent(this, cosmetic);
         Bukkit.getPluginManager().callEvent(postEquipEvent);
+
+        // Publish cross-server update
+        CrossServerManager.getInstance().publishCosmeticUpdate(this, cosmetic.getSlot(), false);
     }
 
     /**
@@ -295,6 +299,9 @@ public class CosmeticUser implements CosmeticHolder {
         colors.remove(slot);
         playerCosmetics.remove(slot);
         removeArmor(slot);
+
+        // Publish cross-server update
+        CrossServerManager.getInstance().publishCosmeticUpdate(this, slot, true);
     }
 
     @Override

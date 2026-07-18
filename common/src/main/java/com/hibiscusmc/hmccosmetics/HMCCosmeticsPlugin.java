@@ -5,6 +5,7 @@ import com.hibiscusmc.hmccosmetics.command.CosmeticCommand;
 import com.hibiscusmc.hmccosmetics.command.CosmeticCommandTabComplete;
 import com.hibiscusmc.hmccosmetics.config.migration.WardrobeMigration;
 import com.hibiscusmc.hmccosmetics.config.section.DatabaseSettings;
+import com.hibiscusmc.hmccosmetics.config.section.CrossServerSettings;
 import com.hibiscusmc.hmccosmetics.config.Settings;
 import com.hibiscusmc.hmccosmetics.config.WardrobeSettings;
 import com.hibiscusmc.hmccosmetics.cosmetic.Cosmetic;
@@ -23,6 +24,7 @@ import com.hibiscusmc.hmccosmetics.hooks.resourcepack.HookNexo;
 import com.hibiscusmc.hmccosmetics.hooks.worldguard.WGHook;
 import com.hibiscusmc.hmccosmetics.hooks.worldguard.WGListener;
 import com.hibiscusmc.hmccosmetics.listener.*;
+import com.hibiscusmc.hmccosmetics.messaging.CrossServerManager;
 import com.hibiscusmc.hmccosmetics.packets.CosmeticPacketInterface;
 import com.hibiscusmc.hmccosmetics.user.CosmeticUser;
 import com.hibiscusmc.hmccosmetics.user.CosmeticUsers;
@@ -141,6 +143,10 @@ public final class HMCCosmeticsPlugin extends HibiscusPlugin {
         // Database
         new Database();
 
+        // Cross-Server Messaging
+        new CrossServerManager();
+        CrossServerManager.getInstance().initialize();
+
         // HMCColor
         try {
             if (Settings.isPreferHMCColorDyeMenu() && Hooks.isActiveHook("HMCColor")) {
@@ -169,6 +175,9 @@ public final class HMCCosmeticsPlugin extends HibiscusPlugin {
 
     @Override
     public void onEnd() {
+        // Shutdown cross-server messaging
+        CrossServerManager.getInstance().shutdown();
+
         // Plugin shutdown logic
         for (Player player : Bukkit.getOnlinePlayers()) {
             CosmeticUser user = CosmeticUsers.getUser(player);
@@ -203,6 +212,7 @@ public final class HMCCosmeticsPlugin extends HibiscusPlugin {
             Settings.load(loader.load(ConfigurationOptions.defaults()));
             WardrobeSettings.load(loader.load().node("wardrobe"));
             DatabaseSettings.load(loader.load().node("database-settings"));
+            CrossServerSettings.load(loader.load());
             configLoader = loader;
         } catch (Exception e) {
             throw new RuntimeException(e);

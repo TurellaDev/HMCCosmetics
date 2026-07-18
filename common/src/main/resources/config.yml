@@ -19,6 +19,23 @@ database-settings:
     enabled: false
     # Delay in ticks from when a player joins
     delay: 20
+cross-server:
+  # Enable cross-server synchronization of cosmetics
+  enabled: false
+  # Transport method: redis or plugin-messaging
+  # redis: Requires a Redis server, lower latency, recommended for production
+  # plugin-messaging: Uses BungeeCord/Velocity plugin channels, no external dependencies
+  transport: redis
+  # Unique identifier for this server (used to prevent message loops)
+  server-id: "server-1"
+  redis:
+    host: "localhost"
+    port: 6379
+    password: ""
+    database: 0
+  plugin-messaging:
+    # Channel for plugin messaging (must be same across all servers)
+    channel: "hmccosmetics:sync"
 cosmetic-settings:
   # In ticks, determines how many times a player cosmetics should be updated. -1 to disable.
   # Ticking periods is something that ensures new players near a player get the packets to actually apply to the user.

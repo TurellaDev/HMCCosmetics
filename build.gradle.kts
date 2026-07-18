@@ -98,6 +98,8 @@ allprojects {
         implementation("dev.triumphteam:triumph-gui:3.2.0-SNAPSHOT") {
             exclude("net.kyori") // Already have adventure API
         }
+        implementation("redis.clients:jedis:5.1.0")
+        implementation("com.google.code.gson:gson:2.10.1")
     }
 
     tasks {
@@ -148,6 +150,9 @@ tasks {
 
         relocate("dev.triumphteam.gui", "com.hibiscusmc.hmccosmetics.shaded.gui")
         relocate("com.owen1212055.particlehelper", "com.hibiscusmc.hmccosmetics.shaded.particlehelper")
+        relocate("redis.clients", "com.hibiscusmc.hmccosmetics.shaded.redis")
+        relocate("org.apache.commons.pool2", "com.hibiscusmc.hmccosmetics.shaded.pool2")
+        relocate("com.google.gson", "com.hibiscusmc.hmccosmetics.shaded.gson")
         archiveFileName.set("HMCCosmeticsRemapped-${project.version}.jar")
 
         dependencies {
